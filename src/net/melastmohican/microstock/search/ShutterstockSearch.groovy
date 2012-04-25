@@ -1,22 +1,25 @@
 //JAVA_OPTS=-DproxyHost=proxy.useastgw.xerox.com -DproxyPort=8000 -DproxySet=true
 package net.melastmohican.microstock.search;
 
-@Grab(group='org.ccil.cowan.tagsoup', module='tagsoup', version='1.2' )
+import java.util.Map;
 
-class ShuterstockSearch {
+class ShutterstockSearch {
 	final def HOST = "http://www.shutterstock.com"
+	@Grab(group='org.ccil.cowan.tagsoup', module='tagsoup', version='1.2' )
 	final tagsoupParser = new org.ccil.cowan.tagsoup.Parser()
 	final slurper = new XmlSlurper(tagsoupParser)
 	private final input
+	private final keywords = [:]
 
-	ShuterstockSearch(String input) {
+	ShutterstockSearch(String input) {
 		this.input = input.tokenize()
 	}
 
 	Set search() {
+		keywords.clear()
 		def searchterm = input.join("+")
 		def searchPage = slurper.parse("${HOST}/cat.mhtml?lang=en&searchterm=${searchterm}&anyorall=all&search_group=all&orient=all&images_per_page=25")
-		def keywords = [:]
+		
 		searchPage.'**'.findAll{ it.@class == 'gc_thumb'}.each {
 			def page = HOST + it.@href
 			println page
@@ -33,9 +36,13 @@ class ShuterstockSearch {
 		def results = keywords.sort { a, b -> b.value <=> a.value }
 		return results.take(50).keySet()
 	}
+	
+	public Map getKeywords() {
+		return keywords
+	}
 
 	public static void main(String[] args) {
-		def ss = new ShuterstockSearch("cute baby girl maya")
+		def ss = new ShutterstockSearch("cute baby girl maya")
 		println ss.search()
 	}
 }
