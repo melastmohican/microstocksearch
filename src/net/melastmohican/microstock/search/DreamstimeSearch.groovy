@@ -1,21 +1,18 @@
 //JAVA_OPTS=-DproxyHost=proxy.useastgw.xerox.com -DproxyPort=8000 -DproxySet=true
 package net.melastmohican.microstock.search;
 
-import java.util.Map;
-
-class ShutterstockSearch extends BaseSearch {
-	final def HOST = "http://www.shutterstock.com"
-
+class DreamstimeSearch extends BaseSearch {
+	final def HOST = "http://www.dreamstime.com"
+	
 	public Set search(String input) {
 		keywords.clear()
 		def searchterm = input.tokenize().join("+")
-		def searchPage = slurper.parse("${HOST}/cat.mhtml?lang=en&searchterm=${searchterm}&anyorall=all&search_group=all&orient=all&images_per_page=25")
-		
-		searchPage.'**'.findAll{ it.@class == 'gc_thumb'}.each {
-			def page = HOST + it.@href
+		def searchPage = slurper.parse("${HOST}/search.php?srh_field=${searchterm}&items=25")
+		searchPage.'**'.findAll{ it.@class == 'thb_cells thb_c1' }.a.each {
+			def page = it.@href.toString()
 			println page
 			def imagePage = slurper.parse(page)
-			imagePage."**".find { it.@id =='keywords-listing' }.a.each {
+			imagePage."**".find { it.@class == 'item08' }.a.each {
 				def keyword = it.text().toLowerCase()
 				def count = keywords[keyword]
 				if( count == null) {
@@ -29,8 +26,8 @@ class ShutterstockSearch extends BaseSearch {
 	}
 	
 	public static void main(String[] args) {
-		def ss = new ShutterstockSearch()
-		println ss.search("cute baby girl maya")
+		def fs = new DreamstimeSearch()
+		println fs.search("cute baby girl maya")
 	}
 }
 

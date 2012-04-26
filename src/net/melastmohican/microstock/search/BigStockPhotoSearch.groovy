@@ -1,22 +1,19 @@
 //JAVA_OPTS=-DproxyHost=proxy.useastgw.xerox.com -DproxyPort=8000 -DproxySet=true
 package net.melastmohican.microstock.search;
 
-import java.util.Map;
-
-class ShutterstockSearch extends BaseSearch {
-	final def HOST = "http://www.shutterstock.com"
+class BigStockPhotoSearch extends BaseSearch {
+	final def HOST = "http://www.bigstockphoto.com"
 
 	public Set search(String input) {
 		keywords.clear()
 		def searchterm = input.tokenize().join("+")
-		def searchPage = slurper.parse("${HOST}/cat.mhtml?lang=en&searchterm=${searchterm}&anyorall=all&search_group=all&orient=all&images_per_page=25")
-		
-		searchPage.'**'.findAll{ it.@class == 'gc_thumb'}.each {
+		def searchPage = slurper.parse("${HOST}/search/?q[st]=${searchterm}&x=40&y=47&q[color]=&q[si]=most&q[cat][main]=&q[ill]=hide&q[uid]=&q[ori]=&q[fmt]=&q[rel]=Both&q[adl]=n&q[pm]=show&q[lp]=Any&queryprpp=25")
+		searchPage.'**'.findAll{ it.@class.text().startsWith("image-preview")}.each {
 			def page = HOST + it.@href
 			println page
 			def imagePage = slurper.parse(page)
-			imagePage."**".find { it.@id =='keywords-listing' }.a.each {
-				def keyword = it.text().toLowerCase()
+			imagePage."**".findAll { it.@id.text().startsWith("kw_") }.each {
+				def keyword = it."..".a.text().toLowerCase()
 				def count = keywords[keyword]
 				if( count == null) {
 					count = 0
@@ -28,9 +25,10 @@ class ShutterstockSearch extends BaseSearch {
 		return results.take(50).keySet()
 	}
 	
+
 	public static void main(String[] args) {
-		def ss = new ShutterstockSearch()
-		println ss.search("cute baby girl maya")
+		def fs = new BigStockPhotoSearch()
+		println fs.search("cute baby girl maya")
 	}
 }
 

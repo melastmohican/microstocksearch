@@ -1,18 +1,23 @@
 //JAVA_OPTS=-DproxyHost=proxy.useastgw.xerox.com -DproxyPort=8000 -DproxySet=true
 package net.melastmohican.microstock.search;
 
-class FotoliaSearch extends BaseSearch {
-	final def HOST = "http://www.fotolia.com"
+import groovy.xml.StreamingMarkupBuilder
+import groovy.xml.XmlUtil
+
+class IStockPhotoSearch extends BaseSearch {
+	final def HOST = "http://www.istockphoto.com"
 
 	public Set search(String input) {
 		keywords.clear()
 		def searchterm = input.tokenize().join("+")
-		def searchPage = slurper.parse("${HOST}/search?k=${searchterm}&filters[collection]=all&filters[orientation]=all&order=relevance&filters[content_type:photo]=1&limit=25")
-		searchPage.'**'.findAll{ it.@class == 'item-id'}.each {
-			def page = HOST + it.@href
+		def searchPage = slurper.parse("${HOST}/search/text/${searchterm}")
+		// TODO: search still broken, need to find the way to search results loaded from Javascript
+		//new File("test.xml") << XmlUtil.serialize(searchPage)
+		searchPage.'**'.findAll{ it.@class == 'srFile' }.each {
+			def page = it.@href.toString()
 			println page
 			def imagePage = slurper.parse(page)
-			imagePage."**".findAll { it.@class.text().startsWith("tags") }.each {
+			imagePage."**".find{ it.text() == 'Keywords:' }."..".td.a.each {
 				def keyword = it.text().toLowerCase()
 				def count = keywords[keyword]
 				if( count == null) {
@@ -27,7 +32,7 @@ class FotoliaSearch extends BaseSearch {
 	
 
 	public static void main(String[] args) {
-		def fs = new FotoliaSearch()
+		def fs = new IStockPhotoSearch()
 		println fs.search("cute baby girl maya")
 	}
 }
