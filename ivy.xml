@@ -2,5 +2,6 @@
     <info organisation="net.melastmohican" module="microstocksearch"/>
     <dependencies>
         <dependency org="org.ccil.cowan.tagsoup" name="tagsoup" rev="1.2"/>
+        <dependency org="org.xerial" name="sqlite-jdbc" rev="3.7.2"/>
     </dependencies>
 </ivy-module>
