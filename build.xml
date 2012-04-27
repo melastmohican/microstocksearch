@@ -3,61 +3,68 @@
     <property name="lib.dir" value="lib" />
     <property name="build.dir" value="bin" />
     <property name="src.dir" value="src" />
-    
-	<property environment="env"/>
-	<path id="groovy.classpath">
-	<fileset dir="${env.GROOVY_HOME}/embeddable/">
-		<filename name="*.jar"/>
-	</fileset>
-	</path>
-		
+
+    <property environment="env"/>
+    <path id="groovy.classpath">
+        <fileset dir="${env.GROOVY_HOME}/embeddable/">
+            <filename name="*.jar"/>
+        </fileset>
+    </path>
+
     <!-- paths used for compilation and run  -->
     <path id="lib.path.id">
-        <fileset dir="${lib.dir}" />
-	</path>
+        <fileset dir="${lib.dir}" erroronmissingdir="false"/>
+    </path>
+
     <path id="run.path.id">
-    	<path refid="groovy.classpath" />
+        <path refid="groovy.classpath" />
         <path refid="lib.path.id" />
         <path location="${build.dir}" />
     </path>
-	
-	<taskdef name="groovy" classname="org.codehaus.groovy.ant.Groovy" classpathref="run.path.id"/>
-	<taskdef name="groovyc" classname="org.codehaus.groovy.ant.Groovyc" classpathref="groovy.classpath" />
-		
-    
-    <target name="resolve" description="--> retreive dependencies with ivy">
+
+    <target name="resolve" depends="prepare" description="--> retreive dependencies with ivy">
         <ivy:retrieve/>
     </target>    
-    
+
     <target name="report" depends="resolve" description="--> generates a report of dependencies">
         <ivy:report todir="${build.dir}"/>
     </target>
-	
-	<target name="build" depends="resolve" description="--> compile the project">
-	        <mkdir dir="${build.dir}" />
-	        <groovyc srcdir="${src.dir}" destdir="${build.dir}" classpathref="lib.path.id"/>
-	    </target>
 
+    <target name="prepare" description="--> creates directories">
+        <mkdir dir="${build.dir}" />
+        <mkdir dir="${lib.dir}" />
+    </target>
+
+    <taskdef name="groovyc" classname="org.codehaus.groovy.ant.Groovyc" classpathref="groovy.classpath" />
+    <target name="build" depends="resolve" description="--> compile the project">    
+        <groovyc srcdir="${src.dir}" destdir="${build.dir}" classpathref="lib.path.id"/>
+    </target>
+
+    <taskdef name="groovy" classname="org.codehaus.groovy.ant.Groovy" classpathref="run.path.id"/>
     <target name="run" depends="build" description="--> run the project">
-    	<groovy>
+        <pathconvert property="class.path" pathsep="," refid="run.path.id"/>
+        <echo message="classpath: ${class.path}" />
+        <groovy>
     		import net.melastmohican.microstock.search.MultiSearch
-    		
+
     		def ms = new MultiSearch()
     		println ms.search("cute baby girl maya")
-    	</groovy>
+        </groovy>
     </target>
 
     <target name="clean" description="--> clean the project">
         <delete includeemptydirs="true">
             <fileset dir="${basedir}">
-            	<exclude name="src/**" />
-            	<exclude name="build.xml" />
-              <exclude name="ivy.xml" />
-        	</fileset>
-    	</delete>
+                <exclude name="src/**" />
+                <exclude name="build.xml" />
+                <exclude name="ivy.xml" />
+                <exclude name=".classpath" />
+                <exclude name=".project" />
+            </fileset>
+        </delete>
     </target>
-	
-	<target name="clean-cache" description="--> clean the ivy cache">
-		<ivy:cleancache />
-	</target>
+
+    <target name="clean-cache" description="--> clean the ivy cache">
+        <ivy:cleancache />
+    </target>
 </project>
