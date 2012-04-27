@@ -1,0 +1,6 @@
+<ivy-module version="2.0">
+    <info organisation="net.melastmohican" module="microstocksearch"/>
+    <dependencies>
+        <dependency org="org.ccil.cowan.tagsoup" name="tagsoup" rev="1.2"/>
+    </dependencies>
+</ivy-module>
