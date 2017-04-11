@@ -1,0 +1,6 @@
+language: groovy
+
+install: ant resolve
+
+script: ant build
+
